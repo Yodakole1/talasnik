@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+
+# PyInstaller/py2exe build folders
+build/
+dist/
+*.spec
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE/project files
+.vscode/
+.idea/
+*.iml
+
+# User data/settings
+*.log
+*.sqlite3
+*.db
+*.bak
+
+# Ignore UV-K5 development files
+radio/uvk5.py
+radio/uvk5_proto.py
+dump_and_edit.sh
+
+# Image edit file wont be used for now
+radio/image.py
