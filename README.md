@@ -1,67 +1,61 @@
+
+<p align="center">
+  <img src="gui/app_logo.png" alt="Talasnik Logo" width="120"/>
+</p>
+
 # Talasnik
 
-Talasnik is a modern ham radio logbook and utility suite for Linux and Windows, built with Python and PyQt5.
-
-## Features
-
-- Ham logbook
-- Antenna calculator
-- Morse code practicer and translator
-- Propagation tools
-- Radio programming utilities
-
-## Installation
-
-1. Clone this repository:
-    ```
-    git clone https://github.com/yourusername/talasnik.git
-    cd talasnik
-    ```
-
-2. Install dependencies (Python 3.8+ recommended):
-    ```
-    pip install -r requirements.txt
-    ```
-
-3. Run the app:
-    ```
-    python gui.py
-    ```
-
-## App Icon
-
-- Place your icon file (e.g. `icon.png` or `icon.ico`) in the `gui/` folder.
-- To use the icon in the app, add this to the top of `main_window.py`:
-    ```python
-    from PyQt5.QtGui import QIcon
-    ```
-  And in your `MainWindow.__init__` or `main()`:
-    ```python
-    self.setWindowIcon(QIcon("gui/icon.png"))  # or .ico for Windows
-    ```
-- For PyInstaller, see below.
-
-## Building a Windows `.exe`
-
-1. Install [PyInstaller](https://pyinstaller.org/):
-    ```
-    pip install pyinstaller
-    ```
-
-2. Build the executable:
-    ```
-    pyinstaller --noconfirm --onefile --windowed --icon=gui/icon.ico gui.py
-    ```
-    - Use `.ico` for Windows icons.
-    - The `.exe` will be in the `dist/` folder.
-
-3. Distribute the `dist/talasnik.exe` file.
-
-## License
-
-MIT License
+**Talasnik** is a modern, user-friendly ham radio utility suite and logbook for Linux and Windows, built with Python and PyQt5.
 
 ---
 
-**Credits:**  
-Developed by [Your Name]  
+## 🚀 Features
+
+- **Ham Log Book**  
+  Easily log, search, and manage your amateur radio contacts with a clean, customizable interface.
+
+- **Antenna Calculator**  
+  Calculate antenna lengths and parameters for various bands and types.
+
+- **Propagation Tools**  
+  View real-time propagation maps and solar data widgets to help you plan your QSOs.
+
+- **Morse Code Practicer**  
+  Practice Morse code using your keyboard or mouse, with live translation and customizable input modes.  
+  Optionally display the Morse alphabet for learning.
+
+- **Morse Code Translator**  
+  Instantly convert between text and Morse code, or translate files in either direction.  
+  Save your translations for later use.
+
+- **Radio Image Backup & Restore**  
+  Backup, restore, and manage your radio’s memory images (e.g., for Baofeng UV-5R and similar radios).  
+  This helps you keep your radio’s configuration safe and easily transferable.
+
+- **Customizable Preferences**  
+  Choose dark or light mode, font, Morse input style, and more.
+
+- **Data Safety**  
+  All your logs and settings are stored locally in easy-to-backup files.
+
+---
+
+## 🌟 Why Use Talasnik?
+
+- **All-in-one**: Combines logging, calculation, Morse, and radio backup in a single app.
+- **Cross-platform**: Works on Linux and Windows.
+- **Modern UI**: Clean, responsive, and easy to use.
+- **Open Source**: Free to use and modify.
+- **Actively Developed**: New features and improvements are coming!
+
+---
+
+## ⚠️ Status
+
+**Talasnik is still in development.**  
+Some features may be experimental or incomplete.  
+Feedback and contributions are welcome!
+
+---
+
+**Developed by [Yodakole1](https://github.com/Yodakole1)**
