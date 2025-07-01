@@ -1,8 +1,9 @@
 import os
 import json
 import pandas as pd
+import re
 from PyQt5.QtWidgets import (
-    QApplication, QMainWindow, QAction, QVBoxLayout, QWidget, QLabel, QFileDialog, QMessageBox, QTableWidgetItem, QHBoxLayout, QPushButton, QDialog
+    QApplication, QMainWindow, QAction, QVBoxLayout, QWidget, QLabel, QFileDialog, QMessageBox, QTableWidgetItem, QHBoxLayout, QPushButton, QDialog, QLineEdit, QComboBox
 )
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
@@ -16,6 +17,7 @@ from .upload_dialog import UploadDialog
 from .propagation_settings import PropagationSettingsDialog
 from .morse_practicer import MorsePracticerDialog
 from .morse_translator import MorseTranslatorDialog
+from .qso_map import QSOMapDialog
 
 PREFS_FILE = "talasnik_prefs.json"
 DEFAULT_PREFS = {
@@ -204,6 +206,10 @@ class MainWindow(QMainWindow):
         morse_translator_action.triggered.connect(self.open_morse_translator)
         tools_menu.addAction(morse_translator_action)
 
+        qso_map_action = QAction("Show QSO Map...", self)
+        qso_map_action.triggered.connect(self.open_qso_map)
+        tools_menu.addAction(qso_map_action)
+
         export_action = QAction("Export Log...", self)
         export_action.triggered.connect(self.export_log)
         export_menu.addAction(export_action)
@@ -228,10 +234,30 @@ class MainWindow(QMainWindow):
     def init_ui(self):
         central = QWidget()
         layout = QVBoxLayout()
-        self.welcome = QLabel("Welcome to Talasnik\n" \
-                              "Ham Log Book below:")
+
+        # --- Add search bar with column selector and regex ---
+        search_row = QHBoxLayout()
+        self.search_bar = QLineEdit()
+        self.search_bar.setPlaceholderText("Search logbook (supports regex)...")
+        self.search_bar.textChanged.connect(self.filter_logbook)
+        search_row.addWidget(self.search_bar)
+
+        self.column_combo = QComboBox()
+        self.column_combo.addItem("All Columns")
+        # Add column names from logbook
+        for i in range(self.prefs["rows"]):
+            if hasattr(self, "logbook") and self.logbook.horizontalHeaderItem(i):
+                self.column_combo.addItem(self.logbook.horizontalHeaderItem(i).text())
+        # If logbook not yet created, add after creation below
+        search_row.addWidget(self.column_combo)
+        self.column_combo.currentIndexChanged.connect(self.filter_logbook)
+
+        layout.addLayout(search_row)
+
+        self.welcome = QLabel("Welcome to Talasnik\nHam Log Book below:")
         self.welcome.setAlignment(Qt.AlignCenter)
         layout.addWidget(self.welcome)
+
         self.logbook = HamLogBook(
             self.prefs["rows"],
             self.prefs["font_family"],
@@ -240,6 +266,12 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.logbook)
         central.setLayout(layout)
         self.setCentralWidget(central)
+
+        # Now update column_combo with real column names
+        self.column_combo.clear()
+        self.column_combo.addItem("All Columns")
+        for i in range(self.logbook.columnCount()):
+            self.column_combo.addItem(self.logbook.horizontalHeaderItem(i).text())
 
         self.update_welcome_style()
 
@@ -381,6 +413,10 @@ class MainWindow(QMainWindow):
         dlg = MorseTranslatorDialog(self)
         dlg.exec_()
 
+    def open_qso_map(self):
+        dlg = QSOMapDialog(self.logbook, self)
+        dlg.exec_()
+
     def export_log(self):
         options = QFileDialog.Options()
         path, selected_filter = QFileDialog.getSaveFileName(
@@ -469,3 +505,38 @@ class MainWindow(QMainWindow):
     def show_about(self):
         dlg = AboutDialog(self)
         dlg.exec_()
+
+    def filter_logbook(self):
+        """Filter logbook rows by search text, column, and regex."""
+        text = self.search_bar.text()
+        col_idx = self.column_combo.currentIndex() - 1  # -1 means all columns
+
+        if not text:
+            # Show all rows if search is empty
+            for row in range(self.logbook.rowCount()):
+                self.logbook.setRowHidden(row, False)
+            return
+
+        try:
+            pattern = re.compile(text, re.IGNORECASE)
+        except re.error:
+            # Invalid regex, hide all rows
+            for row in range(self.logbook.rowCount()):
+                self.logbook.setRowHidden(row, True)
+            return
+
+        for row in range(self.logbook.rowCount()):
+            match = False
+            if col_idx == -1:
+                # Search all columns
+                for col in range(self.logbook.columnCount()):
+                    item = self.logbook.item(row, col)
+                    if item and pattern.search(item.text()):
+                        match = True
+                        break
+            else:
+                # Search specific column
+                item = self.logbook.item(row, col_idx)
+                if item and pattern.search(item.text()):
+                    match = True
+            self.logbook.setRowHidden(row, not match)

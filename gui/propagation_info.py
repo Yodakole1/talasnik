@@ -1,6 +1,7 @@
 import tempfile
 import folium
 import requests
+import socket
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QPushButton, QComboBox, QMessageBox, QSizePolicy, QHBoxLayout, QWidget
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 from PyQt5.QtCore import QUrl, QTimer, Qt
@@ -167,6 +168,14 @@ class ZoomOverlay(QWidget):
             self.webview.setZoomFactor(self.webview.zoom)
         event.accept()
 
+def has_internet(host="8.8.8.8", port=53, timeout=2):
+    try:
+        socket.setdefaulttimeout(timeout)
+        socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
+        return True
+    except Exception:
+        return False
+
 class PropagationInfoDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -175,6 +184,13 @@ class PropagationInfoDialog(QDialog):
         layout = QVBoxLayout(self)
         layout.setSpacing(12)
         layout.setContentsMargins(16, 16, 16, 16)
+
+        if not has_internet():
+            label = QLabel("No internet connection available.<br>Propagation info widgets cannot be loaded.")
+            label.setStyleSheet("font-size: 18pt; color: red;")
+            layout.addWidget(label)
+            self.setLayout(layout)
+            return
 
         # Get up to 3 widgets from preferences, or default
         widgets = []
