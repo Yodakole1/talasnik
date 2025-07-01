@@ -1,4 +1,3 @@
-
 <p align="center">
   <img src="gui/app_logo.png" alt="Talasnik Logo" width="120"/>
 </p>

@@ -36,5 +36,3 @@ radio/uvk5.py
 radio/uvk5_proto.py
 dump_and_edit.sh
 
-# Image edit file wont be used for now
-radio/image.py
