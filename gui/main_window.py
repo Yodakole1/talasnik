@@ -18,6 +18,7 @@ from .propagation_settings import PropagationSettingsDialog
 from .morse_practicer import MorsePracticerDialog
 from .morse_translator import MorseTranslatorDialog
 from .qso_map import QSOMapDialog
+from .prefs import load_prefs, save_prefs
 
 PREFS_FILE = "talasnik_prefs.json"
 DEFAULT_PREFS = {
@@ -28,18 +29,13 @@ DEFAULT_PREFS = {
     "morse_wpm": 30,
     "solar_widgets": [
         "https://www.hamqsl.com/solar101vhfper.php"
-    ]
+    ],
+    "morse_mode": "Spacebar (short/long)",
+    "show_morse_alphabet": False,
+    "hamqth_username": "",
+    "hamqth_password": ""
 }
 
-def load_prefs():
-    if os.path.exists(PREFS_FILE):
-        with open(PREFS_FILE, "r") as f:
-            return {**DEFAULT_PREFS, **json.load(f)}
-    return DEFAULT_PREFS.copy()
-
-def save_prefs(prefs):
-    with open(PREFS_FILE, "w") as f:
-        json.dump(prefs, f)
 
 def show_dark_messagebox(parent, title, text, icon=QMessageBox.Information):
     box = QMessageBox(parent)

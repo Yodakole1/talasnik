@@ -91,7 +91,9 @@ class PreferencesDialog(QDialog):
             """)
 
     def get_prefs(self):
-        return {
+        # Start with a copy of the original prefs so we don't lose any keys (including credentials)
+        new_prefs = self.prefs.copy()
+        new_prefs.update({
             "dark_mode": self.dark_mode.isChecked(),
             "rows": self.rows.value(),
             "font_family": self.font_family.currentFont().family(),
@@ -99,4 +101,5 @@ class PreferencesDialog(QDialog):
             "morse_mode": self.morse_mode.currentText(),
             "show_morse_alphabet": self.show_morse_alphabet.isChecked(),
             "morse_wpm": self.morse_wpm.value()
-        }
+        })
+        return new_prefs

@@ -30,6 +30,7 @@ Thumbs.db
 *.sqlite3
 *.db
 *.bak
+talasnik_prefs.json
 
 # Ignore UV-K5 development files
 radio/uvk5.py
