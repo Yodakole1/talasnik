@@ -1,8 +1,15 @@
+import sys
 import serial
 import time
 
+def fix_port_name(port):
+    if sys.platform.startswith("win") and port.upper().startswith("COM") and len(port) > 4:
+        return r'\\.\{}'.format(port)
+    return port
+
 class UV5RProtocol:
     def __init__(self, port):
+        port = fix_port_name(port)  # <-- Fix port name for Windows
         self.ser = serial.Serial(port, 9600, timeout=1)
         self.ser.reset_input_buffer()
         self.ser.reset_output_buffer()
