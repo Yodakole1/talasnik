@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QPushButton, QFileDialog
+from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QPushButton, QFileDialog, QHBoxLayout, QSpinBox
 from PyQt5.QtCore import Qt, QTimer
 import time
 
@@ -13,8 +13,6 @@ MORSE_CODE_DICT = {
     '--...': '7', '---..': '8', '----.': '9'
 }
 
-MORSE_LETTER_TIMEOUT = 200  # ms
-
 class MorsePracticerDialog(QDialog):
     def __init__(self, mode, parent=None):
         super().__init__(parent)
@@ -24,15 +22,30 @@ class MorsePracticerDialog(QDialog):
         self.morse = ""
         self.text = ""
         self.last_press = 0
-        self.key_timer = QTimer(self)
-        self.key_timer.setSingleShot(True)
-        self.key_timer.timeout.connect(self.end_letter)
         self.input_active = False
+
+        # --- WPM selector ---
+        self.prefs = getattr(parent, "prefs", {}) if parent else {}
+        self.wpm = self.prefs.get("morse_wpm", 30)
+        wpm_row = QHBoxLayout()
+        wpm_row.addStretch(1)
+        wpm_label = QLabel("WPM:")
+        self.wpm_spin = QSpinBox()
+        self.wpm_spin.setRange(5, 60)
+        self.wpm_spin.setValue(self.wpm)
+        self.wpm_spin.setFixedWidth(60)
+        self.wpm_spin.valueChanged.connect(self.set_wpm)
+        wpm_row.addWidget(wpm_label)
+        wpm_row.addWidget(self.wpm_spin)
 
         # Detect dark mode from parent if available
         dark_mode = False
         if parent and hasattr(parent, "prefs"):
             dark_mode = parent.prefs.get("dark_mode", False)
+
+        wpm_color = "white" if dark_mode else "#23272e"
+        wpm_label.setStyleSheet(f"color: {wpm_color}; font-size: 12pt; font-family: 'Segoe UI', 'Arial', sans-serif;")
+        self.wpm_spin.setStyleSheet(f"color: {wpm_color}; font-size: 12pt; font-family: 'Segoe UI', 'Arial', sans-serif;")
 
         if dark_mode:
             self.dot_dash_label = QLabel("Press Start and begin typing Morse code.")
@@ -82,6 +95,7 @@ class MorsePracticerDialog(QDialog):
         self.save_btn.setEnabled(False)
 
         layout = QVBoxLayout(self)
+        layout.addLayout(wpm_row)
         if self.morse_alphabet_label:
             layout.addWidget(self.morse_alphabet_label)
         layout.addWidget(self.dot_dash_label)
@@ -90,6 +104,35 @@ class MorsePracticerDialog(QDialog):
         layout.addWidget(self.save_btn)
         self.setLayout(layout)
         self.setFocusPolicy(Qt.StrongFocus)
+
+        # Set initial timeout based on WPM
+        self.key_timer = QTimer(self)
+        self.key_timer.setSingleShot(True)
+        self.key_timer.timeout.connect(self.end_letter)
+        self.update_letter_timeout()
+
+    def set_wpm(self, value):
+        self.wpm = value
+        self.update_letter_timeout()
+        # Save to preferences if possible
+        if self.prefs is not None:
+            self.prefs["morse_wpm"] = value
+            # Save prefs to disk if parent has save_prefs
+            parent = self.parent()
+            if parent and hasattr(parent, "prefs"):
+                parent.prefs["morse_wpm"] = value
+                try:
+                    from gui.main_window import save_prefs
+                    save_prefs(parent.prefs)
+                except Exception:
+                    pass
+
+    def update_letter_timeout(self):
+        # Standard: 1 WPM = 1200 ms per dit, so letter timeout = 60000/(50*WPM) ms per dot
+        # For end-of-letter, a common value is 3x dot length
+        dot_length_ms = 1200 / self.wpm
+        self.letter_timeout = int(dot_length_ms * 3)
+        # No need to set timer interval here, just use self.letter_timeout when starting timer
 
     def toggle_practice(self):
         if not self.input_active:
@@ -152,7 +195,7 @@ class MorsePracticerDialog(QDialog):
                     self.morse += "-"
                 self.update_display()
                 self.key_timer.stop()
-                self.key_timer.start(MORSE_LETTER_TIMEOUT)
+                self.key_timer.start(self.letter_timeout)
         else:
             super().keyReleaseEvent(event)
 
@@ -164,12 +207,12 @@ class MorsePracticerDialog(QDialog):
                 self.morse += "."
                 self.update_display()
                 self.key_timer.stop()
-                self.key_timer.start(MORSE_LETTER_TIMEOUT)
+                self.key_timer.start(self.letter_timeout)
             elif event.button() == Qt.RightButton:
                 self.morse += "-"
                 self.update_display()
                 self.key_timer.stop()
-                self.key_timer.start(MORSE_LETTER_TIMEOUT)
+                self.key_timer.start(self.letter_timeout)
         else:
             super().mousePressEvent(event)
 

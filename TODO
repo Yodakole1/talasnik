@@ -1,11 +1,8 @@
-#Dodaj da korisnik bira brzinu u morse kodu
-# Korisnik može uneti brzinu u WPM (words per minute)
-# Implementiraj UI elemente za unos brzine u morse practiceru proyoru malo polje gore desno stavi da je default 30
 
-#qso map namesto da radi odnosno ispisuje lokaciju na mapi *****lookup koristi hamdb.org API ako moze***********
+#
 #
 
-#  napravi da memory dump radi na windowsu i linuxu al to tek kad nabavim image.py
+#  
 #  moze gui da se sredi realno
 #
 #- Customizable Themes 

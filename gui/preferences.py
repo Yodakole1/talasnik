@@ -47,6 +47,11 @@ class PreferencesDialog(QDialog):
         self.show_morse_alphabet.setChecked(self.prefs.get("show_morse_alphabet", False))
         layout.addRow(self.show_morse_alphabet)
 
+        self.morse_wpm = QSpinBox()
+        self.morse_wpm.setRange(5, 60)
+        self.morse_wpm.setValue(self.prefs.get("morse_wpm", 30))
+        layout.addRow("Default Morse WPM:", self.morse_wpm)
+
         # Buttons
         btns = QHBoxLayout()
         ok = QPushButton("OK")
@@ -92,5 +97,6 @@ class PreferencesDialog(QDialog):
             "font_family": self.font_family.currentFont().family(),
             "font_size": self.font_size.value(),
             "morse_mode": self.morse_mode.currentText(),
-            "show_morse_alphabet": self.show_morse_alphabet.isChecked()
+            "show_morse_alphabet": self.show_morse_alphabet.isChecked(),
+            "morse_wpm": self.morse_wpm.value()
         }

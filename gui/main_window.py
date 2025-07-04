@@ -25,6 +25,7 @@ DEFAULT_PREFS = {
     "rows": 20,
     "font_family": "Arial",
     "font_size": 15,
+    "morse_wpm": 30,
     "solar_widgets": [
         "https://www.hamqsl.com/solar101vhfper.php"
     ]
@@ -271,7 +272,11 @@ class MainWindow(QMainWindow):
         self.column_combo.clear()
         self.column_combo.addItem("All Columns")
         for i in range(self.logbook.columnCount()):
-            self.column_combo.addItem(self.logbook.horizontalHeaderItem(i).text())
+            header_item = self.logbook.horizontalHeaderItem(i)
+            if header_item is not None:
+                self.column_combo.addItem(header_item.text())
+            else:
+                self.column_combo.addItem(f"Column {i+1}")
 
         self.update_welcome_style()
 
@@ -408,6 +413,9 @@ class MainWindow(QMainWindow):
     def open_morse_practicer(self):
         dlg = MorsePracticerDialog(self.prefs.get("morse_mode", "Spacebar (short/long)"), self)
         dlg.exec_()
+        # After dialog closes, update prefs in case WPM was changed
+        self.prefs["morse_wpm"] = dlg.wpm
+        save_prefs(self.prefs)
 
     def open_morse_translator(self):
         dlg = MorseTranslatorDialog(self)
@@ -446,7 +454,7 @@ class MainWindow(QMainWindow):
         columns = [self.logbook.horizontalHeaderItem(i).text() for i in range(self.logbook.columnCount())]
         df = pd.DataFrame(data, columns=columns)
         if path.endswith(".xlsx"):
-            df.to_excel(path, index=False)
+            df.to_excel(path, index=False, na_rep="")  # <--- This keeps empty cells empty
         else:
             df.to_json(path, orient="records", indent=2)
 
@@ -464,18 +472,20 @@ class MainWindow(QMainWindow):
 
         try:
             if path.endswith(".xlsx"):
-                df = pd.read_excel(path)
+                df = pd.read_excel(path, dtype=str)  # Read all as string
             else:
-                df = pd.read_json(path)
-            # Clear current table
-            self.logbook.setRowCount(0)
+                df = pd.read_json(path, dtype=str)
+            df = df.fillna("")  # <--- Replace NaN with empty string
+
+            # Clear current table and set up columns
+            self.logbook.setRowCount(len(df))
             self.logbook.setColumnCount(len(df.columns))
             self.logbook.setHorizontalHeaderLabels([str(col) for col in df.columns])
             # Fill table with imported data
             for row_idx, row in df.iterrows():
-                self.logbook.insertRow(row_idx)
                 for col_idx, value in enumerate(row):
                     item = QTableWidgetItem(str(value))
+                    item.setFlags(item.flags() | Qt.ItemIsEditable)
                     if self.prefs.get("dark_mode"):
                         item.setForeground(QColor(Qt.white))
                     self.logbook.setItem(row_idx, col_idx, item)
