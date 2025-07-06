@@ -468,16 +468,24 @@ class MainWindow(QMainWindow):
 
         try:
             if path.endswith(".xlsx"):
-                df = pd.read_excel(path, dtype=str)  # Read all as string
+                # Read Excel normally with first row as header
+                df = pd.read_excel(path, header=0, dtype=str, engine="openpyxl")
             else:
                 df = pd.read_json(path, dtype=str)
-            df = df.fillna("")  # <--- Replace NaN with empty string
 
-            # Clear current table and set up columns
+            # Replace NaN with empty strings
+            df = df.fillna("")
+
+            # Clear existing HamLogBook content
+            self.logbook.setRowCount(0)
+            self.logbook.setColumnCount(0)
+
+            # Set up new table
             self.logbook.setRowCount(len(df))
             self.logbook.setColumnCount(len(df.columns))
             self.logbook.setHorizontalHeaderLabels([str(col) for col in df.columns])
-            # Fill table with imported data
+
+            # Fill the table
             for row_idx, row in df.iterrows():
                 for col_idx, value in enumerate(row):
                     item = QTableWidgetItem(str(value))
@@ -485,9 +493,13 @@ class MainWindow(QMainWindow):
                     if self.prefs.get("dark_mode"):
                         item.setForeground(QColor(Qt.white))
                     self.logbook.setItem(row_idx, col_idx, item)
+
             QMessageBox.information(self, "Import", f"Imported {len(df)} rows from: {path}")
+
         except Exception as e:
             QMessageBox.critical(self, "Import Error", f"Failed to import: {e}")
+
+
 
     def show_message(self, title, msg):
         if self.prefs.get("dark_mode"):
